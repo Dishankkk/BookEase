@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 // Base URL of our backend API
-const BASE_URL = 'http://localhost:5000/api';
+const BASE_URL = 'https://bookease-backend.onrender.com/api';
 
 // Create axios instance with default config
 const api = axios.create({
