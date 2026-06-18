@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import api from '../utils/api'; 
+import api from '../services/api';
 
 const IssuePage = () => {
   const [formData, setFormData] = useState({
