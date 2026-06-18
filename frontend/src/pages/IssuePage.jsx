@@ -1,125 +1,76 @@
-const mongoose = require('mongoose');
+import { useState } from 'react';
+import api from '../utils/api'; 
 
-const issuedBookSchema = new mongoose.Schema(
-  {
-    student: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Student',
-      required: [true, 'Student reference is required']
-    },
+const IssuePage = () => {
+  const [formData, setFormData] = useState({
+    rollNumber: '',
+    bookId: '',
+    dueDate: ''
+  });
 
-    rollNumber: {
-      type: String,
-      required: true,
-      uppercase: true,
-      trim: true
-    },
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
+      ...prev,
+      [name]: value
+    }));
+  };
 
-    book: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Book',
-      required: [true, 'Book reference is required']
-    },
-
-    bookId: {
-      type: String,
-      required: true,
-      uppercase: true,
-      trim: true
-    },
-
-    issueDate: {
-      type: Date,
-      default: Date.now
-    },
-
-    dueDate: {
-      type: Date,
-      required: true
-    },
-
-    returnDate: {
-      type: Date,
-      default: null
-    },
-
-    status: {
-      type: String,
-      enum: {
-        values: ['issued', 'returned', 'overdue'],
-        message: '{VALUE} is not a valid status'
-      },
-      default: 'issued'
-    },
-
-    fine: {
-      type: Number,
-      default: 0,
-      min: 0
-    },
-
-    finePaid: {
-      type: Boolean,
-      default: false
-    },
-
-    remarks: {
-      type: String,
-      trim: true
+  const handleIssueBook = async (e) => {
+    e.preventDefault();
+    try {
+      // Sending the form data to your live Render backend
+      const response = await api.post('/issued-books', formData);
+      
+      // Using 'response' here clears its redline!
+      alert(`Book issued successfully! ID: ${response.data.id || ''}`);
+      
+      // Reset form on success
+      setFormData({ rollNumber: '', bookId: '', dueDate: '' });
+    } catch (error) {
+      console.error(error);
+      alert(error.response?.data?.message || 'Failed to issue book');
     }
-  },
-  {
-    timestamps: true
-  }
-);
+  };
 
-// ──────────────────────────────────────────────
-// VIRTUAL: Calculate days overdue
-// ──────────────────────────────────────────────
-issuedBookSchema.virtual('daysOverdue').get(function () {
-  if (this.status === 'returned') return 0;
+  return (
+    <div style={{ padding: '20px', maxWidth: '400px' }}>
+      <h2>Issue a Book</h2>
+      <form onSubmit={handleIssueBook} style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
+        <div>
+          <label>Roll Number: </label>
+          <input 
+            type="text" 
+            name="rollNumber" 
+            value={formData.rollNumber} 
+            onChange={handleInputChange} 
+            required 
+          />
+        </div>
+        <div>
+          <label>Book ID: </label>
+          <input 
+            type="text" 
+            name="bookId" 
+            value={formData.bookId} 
+            onChange={handleInputChange} 
+            required 
+          />
+        </div>
+        <div>
+          <label>Due Date: </label>
+          <input 
+            type="date" 
+            name="dueDate" 
+            value={formData.dueDate} 
+            onChange={handleInputChange} 
+            required 
+          />
+        </div>
+        <button type="submit" style={{ padding: '8px', cursor: 'pointer' }}>Issue Book</button>
+      </form>
+    </div>
+  );
+};
 
-  const today = new Date();
-  const due = new Date(this.dueDate);
-
-  if (today <= due) return 0;
-
-  const diffTime = Math.abs(today - due);
-  const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-  return diffDays;
-});
-
-// ──────────────────────────────────────────────
-// PRE-SAVE HOOK — Fixed version
-// Using async/await instead of next() callback
-// ──────────────────────────────────────────────
-issuedBookSchema.pre('save', async function () {
-  // Only calculate fine if book is being returned or marked overdue
-  if (this.status !== 'issued') {
-    const checkDate = this.returnDate || new Date();
-    const dueDate = new Date(this.dueDate);
-
-    if (checkDate > dueDate) {
-      const diffTime = checkDate - dueDate;
-      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
-      this.fine = diffDays * 2; // ₹2 per day
-    }
-  }
-  // No next() needed with async/await
-});
-
-issuedBookSchema.set('toJSON', { virtuals: true });
-issuedBookSchema.set('toObject', { virtuals: true });
-
-// ──────────────────────────────────────────────
-// INDEXES
-// ──────────────────────────────────────────────
-issuedBookSchema.index({ student: 1, status: 1 });
-issuedBookSchema.index({ rollNumber: 1 });
-issuedBookSchema.index({ book: 1 });
-issuedBookSchema.index({ status: 1 });
-issuedBookSchema.index({ dueDate: 1 });
-
-const IssuedBook = mongoose.model('IssuedBook', issuedBookSchema);
-
-module.exports = IssuedBook;
+export default IssuePage;
