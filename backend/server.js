@@ -36,9 +36,9 @@ connectDB();
 // Security headers
 app.use(helmet());
 
-// Enable CORS — Allow requests from React frontend (port 5173 or 3000)
+// Enable CORS — Allow requests from local environments AND your live Vercel frontend
 app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'],
+  origin: ['http://localhost:5173', 'http://localhost:3000', 'https://bookease-six.vercel.app'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
   credentials: true
 }));
@@ -59,7 +59,9 @@ if (process.env.NODE_ENV === 'development') {
 // ──────────────────────────────────────────────
 app.use('/api/books', bookRoutes);
 app.use('/api/students', studentRoutes);
-app.use('/api/issues', issueRoutes);
+
+// FIXED: Changed from '/api/issues' to '/api/issued-books' to match your frontend API requests
+app.use('/api/issued-books', issueRoutes);
 
 // ──────────────────────────────────────────────
 // ROOT ROUTE — Test if server is running
@@ -73,7 +75,7 @@ app.get('/', (req, res) => {
     endpoints: {
       books: '/api/books',
       students: '/api/students',
-      issues: '/api/issues'
+      issuedBooks: '/api/issued-books'
     }
   });
 });
