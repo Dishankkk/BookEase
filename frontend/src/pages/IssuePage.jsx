@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { BookOpen, User, ArrowRightLeft } from 'lucide-react';
-// FIXED: Changed 'api' to the working '{ issueAPI }' instance
+// Import the correct, pre-configured named object from api.js
 import { issueAPI } from '../services/api'; 
 
 const IssuePage = () => {
@@ -22,22 +22,23 @@ const IssuePage = () => {
     e.preventDefault();
     setLoading(true);
 
-    const calculatedDueDate = new Date();
-    calculatedDueDate.setDate(calculatedDueDate.getDate() + 14); 
-
+    // Form payload matching exactly what issueController.js expects
     const payload = {
-      ...formData,
-      dueDate: calculatedDueDate.toISOString().split('T')[0]
+      rollNumber: formData.rollNumber.trim(),
+      bookId: formData.bookId.trim()
     };
 
     try {
-      // FIXED: Used issueAPI to correctly point to your live Render server
-      const response = await issueAPI.post('/issued-books', payload);
-      alert(`📚 Book issued successfully! ID: ${response.data?.data?.issueId || response.data?.id || 'Success'}`);
+      // Execute the explicit preconfigured SDK method from api.js
+      const response = await issueAPI.issue(payload);
+      
+      // Because api.js response interceptor returns 'response.data', we read it directly
+      alert(response?.message || '📚 Book issued successfully!');
       setFormData({ rollNumber: '', bookId: '' });
     } catch (error) {
       console.error(error);
-      alert(error.response?.data?.message || 'Failed to issue book. Please check details.');
+      // Reads the intercepted error string message clearly
+      alert(error.message || 'Failed to issue book. Please check details.');
     } finally {
       setLoading(false);
     }
@@ -47,6 +48,7 @@ const IssuePage = () => {
     <div className="max-w-md mx-auto px-4 py-12">
       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
         
+        {/* Title Heading */}
         <div className="flex items-center space-x-3 mb-6 pb-4 border-b border-gray-100">
           <div className="p-2.5 bg-blue-100 rounded-xl">
             <ArrowRightLeft className="h-6 w-6 text-blue-700" />
@@ -58,6 +60,7 @@ const IssuePage = () => {
         </div>
 
         <form onSubmit={handleIssueBook} className="space-y-5">
+          {/* Roll Number Field */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-2">
               <User className="h-4 w-4 text-gray-400" /> Student Roll Number
@@ -73,6 +76,7 @@ const IssuePage = () => {
             />
           </div>
 
+          {/* Book ID Field */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-2">
               <BookOpen className="h-4 w-4 text-gray-400" /> Book ID / Accession No.
@@ -88,6 +92,7 @@ const IssuePage = () => {
             />
           </div>
 
+          {/* Submit Action Button */}
           <button
             type="submit"
             disabled={loading}
