@@ -61,7 +61,9 @@ app.use('/api/books', bookRoutes);
 app.use('/api/students', studentRoutes);
 
 // FIXED: Changed from '/api/issues' to '/api/issued-books' to match your frontend API requests
-app.use('/api/issued-books', issueRoutes);
+app.use('/api/issues', issueRoutes);       // This resolves the /api/issues/stats dashboard call
+app.use('/api/issued-books', issueRoutes); // This resolves the /api/issued-books page form submission
+
 
 // ──────────────────────────────────────────────
 // ROOT ROUTE — Test if server is running
