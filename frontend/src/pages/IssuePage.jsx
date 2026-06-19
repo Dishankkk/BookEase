@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { BookOpen, User, ArrowRightLeft } from 'lucide-react';
-import api from '../services/api';
+// FIXED: Changed 'api' to the working '{ issueAPI }' instance
+import { issueAPI } from '../services/api'; 
 
 const IssuePage = () => {
   const [formData, setFormData] = useState({
@@ -21,17 +22,17 @@ const IssuePage = () => {
     e.preventDefault();
     setLoading(true);
 
-    // Automatically calculate a return due date (e.g., 14 days from today)
     const calculatedDueDate = new Date();
     calculatedDueDate.setDate(calculatedDueDate.getDate() + 14); 
 
     const payload = {
       ...formData,
-      dueDate: calculatedDueDate.toISOString().split('T')[0] // Formats cleanly to YYYY-MM-DD
+      dueDate: calculatedDueDate.toISOString().split('T')[0]
     };
 
     try {
-      const response = await api.post('/issued-books', payload);
+      // FIXED: Used issueAPI to correctly point to your live Render server
+      const response = await issueAPI.post('/issued-books', payload);
       alert(`📚 Book issued successfully! ID: ${response.data?.data?.issueId || response.data?.id || 'Success'}`);
       setFormData({ rollNumber: '', bookId: '' });
     } catch (error) {
@@ -46,7 +47,6 @@ const IssuePage = () => {
     <div className="max-w-md mx-auto px-4 py-12">
       <div className="bg-white rounded-2xl shadow-lg border border-gray-100 p-8">
         
-        {/* Header Title Section */}
         <div className="flex items-center space-x-3 mb-6 pb-4 border-b border-gray-100">
           <div className="p-2.5 bg-blue-100 rounded-xl">
             <ArrowRightLeft className="h-6 w-6 text-blue-700" />
@@ -58,8 +58,6 @@ const IssuePage = () => {
         </div>
 
         <form onSubmit={handleIssueBook} className="space-y-5">
-          
-          {/* Roll Number Field */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-2">
               <User className="h-4 w-4 text-gray-400" /> Student Roll Number
@@ -75,7 +73,6 @@ const IssuePage = () => {
             />
           </div>
 
-          {/* Book ID Field */}
           <div>
             <label className="block text-sm font-semibold text-gray-700 mb-1.5 flex items-center gap-2">
               <BookOpen className="h-4 w-4 text-gray-400" /> Book ID / Accession No.
@@ -91,7 +88,6 @@ const IssuePage = () => {
             />
           </div>
 
-          {/* Action Submit Button */}
           <button
             type="submit"
             disabled={loading}
